@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t duyn55/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run duyn55/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t duyn55/multi-client ./client
+  - docker build -t duyn55/multi-nginx ./nginx
+  - docker build -t duyn55/multi-server ./server
+  - docker build -t duyn55/multi-worker ./worker
+  # Log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push those images to docker hub
+  - docker push duyn55/multi-client
+  - docker push duyn55/multi-nginx
+  - docker push duyn55/multi-server
+  - docker push duyn55/multi-worker
